@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simplet BI Dashboard - International Student Insights</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+    :root {
+        --primary: #004080;
+        --secondary: #007acc;
+        --accent: #ff6b35;
+        --light: #f0f2f5;
+        --dark: #333;
+        --success: #28a745;
+        --warning: #ffc107;
+        --danger: #dc3545;
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: var(--light);
+        color: var(--dark);
+        line-height: 1.6;
+    }
+    
+    header {
+        background: linear-gradient(135deg, var(--primary) 0%, #00264d 100%);
+        color: white;
+        padding: 30px 20px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    header h1 { 
+        margin: 0 0 10px; 
+        font-size: 2.2em; 
+        font-weight: 700;
+    }
+    
+    header p { 
+        margin: 0; 
+        font-size: 1.1em;
+        opacity: 0.9;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .nav-tabs {
+        background: white;
+        padding: 0 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        justify-content: center;
+    }
+    
+    .tab {
+        padding: 15px 25px;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+        font-weight: 500;
+    }
+    
+    .tab.active {
+        border-bottom: 3px solid var(--accent);
+        color: var(--accent);
+    }
+    
+    .tab:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .container { 
+        width: 95%; 
+        max-width: 1200px; 
+        margin: 30px auto; 
+        padding: 0 15px;
+    }
+    
+    .tab-content {
+        display: none;
+    }
+    
+    .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .kpi-panel { 
+        display: flex; 
+        flex-wrap: wrap; 
+        justify-content: space-between; 
+        margin-bottom: 30px; 
+        gap: 15px;
+    }
+    
+    .kpi { 
+        background: white; 
+        color: var(--dark); 
+        padding: 25px 20px; 
+        flex: 1; 
+        min-width: 200px; 
+        border-radius: 10px; 
+        text-align: center; 
+        transition: all 0.3s; 
+        cursor: pointer; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        border-left: 4px solid var(--secondary);
+    }
+    
+    .kpi:hover { 
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .kpi h2 { 
+        margin: 0; 
+        font-size: 2.2em; 
+        font-weight: 700;
+        color: var(--primary);
+    }
+    
+    .kpi p { 
+        margin: 10px 0 0; 
+        font-size: 1em; 
+        color: #666;
+    }
+    
+    .kpi .trend {
+        font-size: 0.85em;
+        margin-top: 5px;
+    }
+    
+    .kpi .trend.up {
+        color: var(--success);
+    }
+    
+    .kpi .trend.down {
+        color: var(--danger);
+    }
+    
+    .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .chart { 
+        background: white; 
+        padding: 25px; 
+        border-radius: 10px; 
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: all 0.3s;
+    }
+    
+    .chart:hover {
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    
+    .chart-title { 
+        margin-top: 0; 
+        color: var(--primary); 
+        border-bottom: 1px solid #eee; 
+        padding-bottom: 15px; 
+        margin-bottom: 20px;
+        font-size: 1.3em;
+        font-weight: 600;
+    }
+    
+    .insights-panel {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 30px;
+    }
+    
+    .insight-item {
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .insight-item:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .insight-title {
+        font-weight: 600;
+        color: var(--primary);
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .insight-title i {
+        margin-right: 10px;
+        color: var(--accent);
+    }
+    
+    .recommendation {
+        background: #e8f4ff;
+        border-left: 4px solid var(--secondary);
+        padding: 20px;
+        border-radius: 0 8px 8px 0;
+        margin: 25px 0;
+    }
+    
+    .recommendation h3 {
+        color: var(--primary);
+        margin-bottom: 10px;
+    }
+    
+    .filter-panel {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+    
+    .filter-label {
+        font-weight: 600;
+        color: var(--primary);
+    }
+    
+    select, button {
+        padding: 8px 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        background: white;
+        font-family: inherit;
+    }
+    
+    button {
+        background: var(--secondary);
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    
+    button:hover {
+        background: #005999;
+    }
+    
+    .data-source {
+        font-size: 0.85em;
+        color: #777;
+        margin-top: 10px;
+        font-style: italic;
+    }
+    
+    footer {
+        background: var(--primary);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+    }
+    
+    @media (max-width: 768px) {
+        .kpi-panel { 
+            flex-direction: column; 
+        }
+        .kpi { 
+            margin: 5px 0; 
+        }
+        .chart-grid {
+            grid-template-columns: 1fr;
+        }
+        .nav-tabs {
+            flex-wrap: wrap;
+        }
+        .tab {
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+        }
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>Simplet BI Dashboard</h1>
+    <p>Data-Driven Validation of Transport, Communication, and Scam Challenges for International Students in Ireland</p>
+</header>
+
+<div class="nav-tabs">
+    <div class="tab active" data-tab="overview">Overview</div>
+    <div class="tab" data-tab="transport">Transport Analysis</div>
+    <div class="tab" data-tab="scams">Scam Analysis</div>
+    <div class="tab" data-tab="recommendations">Recommendations</div>
+    <div class="tab" data-tab="methodology">Methodology</div>
+</div>
+
+<div class="container">
+    <!-- Overview Tab -->
+    <div class="tab-content active" id="overview">
+        <div class="kpi-panel">
+            <div class="kpi" id="kpi-students">
+                <h2>278,880</h2>
+                <p>Total International Students (2024/25)</p>
+                <div class="trend up">↑ 17% since 2018</div>
+            </div>
+            <div class="kpi" id="kpi-scam">
+                <h2>4,567</h2>
+                <p>Online Fraud Incidents (2024)</p>
+                <div class="trend up">↑ 267% since 2020</div>
+            </div>
+            <div class="kpi" id="kpi-app">
+                <h2>3.2</h2>
+                <p>Avg. Transport App Rating</p>
+                <div class="trend down">↓ Below industry average</div>
+            </div>
+            <div class="kpi" id="kpi-engagement">
+                <h2>342</h2>
+                <p>Highest Reddit Engagement</p>
+                <p>Scam Warning Posts</p>
+            </div>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart">
+                <h3 class="chart-title">International Student Growth Trend</h3>
+                <div id="growth-chart"></div>
+                <div class="data-source">Source: HEA International Student Statistics</div>
+            </div>
+            
+            <div class="chart">
+                <h3 class="chart-title">Problem Categories Discussed by Students</h3>
+                <div id="problem-categories"></div>
+                <div class="data-source">Source: Reddit Discussions Analysis</div>
+            </div>
+        </div>
+
+        <div class="insights-panel">
+            <h3 class="chart-title">Key Business Insights</h3>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>📈</i> Significant Market Growth
+                </div>
+                <p>International student numbers have grown by 17% since 2018, reaching 278,880 in 2024/25. This represents a substantial and growing market for student-focused solutions.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>⚠️</i> Escalating Scam Problem
+                </div>
+                <p>Online fraud incidents have increased by 267% since 2020, with accommodation scams being particularly problematic for international students.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🚌</i> Transport App Deficiencies
+                </div>
+                <p>Current transport apps average only 3.2 stars, with key pain points including language barriers, reliability issues, and lack of student-specific features.</p>
+            </div>
+            
+            <div class="recommendation">
+                <h3>Business Opportunity Validated</h3>
+                <p>The data strongly supports the business case for Simplet. With a growing student population facing significant transport, communication, and scam challenges, there is clear market need for an integrated solution.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transport Analysis Tab -->
+    <div class="tab-content" id="transport">
+        <div class="filter-panel">
+            <span class="filter-label">Filter by App Category:</span>
+            <select id="app-category-filter">
+                <option value="all">All Categories</option>
+                <option value="Transport">Transport</option>
+                <option value="Accommodation">Accommodation</option>
+                <option value="Banking">Banking</option>
+            </select>
+            <button id="apply-filter">Apply Filter</button>
+        </div>
+
+        <div class="chart-grid">
+            <div class="chart">
+                <h3 class="chart-title">App Ratings by Category</h3>
+                <div id="app-ratings-chart"></div>
+                <div class="data-source">Source: App Store Reviews Analysis</div>
+            </div>
+            
+            <div class="chart">
+                <h3 class="chart-title">Transport App Pain Points</h3>
+                <div id="pain-points-chart"></div>
+                <div class="data-source">Source: App Store Reviews Analysis</div>
+            </div>
+        </div>
+
+        <div class="insights-panel">
+            <h3 class="chart-title">Transport Insights</h3>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🔍</i> Critical Feature Gaps
+                </div>
+                <p>Transport apps lack essential features for international students: multi-language support, offline functionality, student discount integration, and simplified route planning for newcomers.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>💬</i> Language Barrier Impact
+                </div>
+                <p>23% of negative reviews mention language and usability issues, indicating a significant accessibility problem for non-native English speakers.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scam Analysis Tab -->
+    <div class="tab-content" id="scams">
+        <div class="chart-grid">
+            <div class="chart">
+                <h3 class="chart-title">Scam Incidents Over Time</h3>
+                <div id="scam-trend-chart"></div>
+                <div class="data-source">Source: Garda Crime Statistics</div>
+            </div>
+            
+            <div class="chart">
+                <h3 class="chart-title">Scam Type Distribution (2024)</h3>
+                <div id="scam-type-chart"></div>
+                <div class="data-source">Source: Garda Crime Statistics</div>
+            </div>
+        </div>
+
+        <div class="chart">
+            <h3 class="chart-title">Scam Incidents Heatmap by Type and Year</h3>
+            <div id="scam-heatmap"></div>
+            <div class="data-source">Source: Garda Crime Statistics</div>
+        </div>
+
+        <div class="insights-panel">
+            <h3 class="chart-title">Scam Analysis Insights</h3>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>📊</i> Exponential Growth in Online Fraud
+                </div>
+                <p>Online fraud has grown from 1,245 incidents in 2020 to 4,567 in 2024 - a 267% increase that outpaces all other scam categories.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🏠</i> Accommodation Scams Target Students
+                </div>
+                <p>While accommodation scams represent a smaller portion of total incidents, they disproportionately affect international students who are vulnerable when seeking housing.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations Tab -->
+    <div class="tab-content" id="recommendations">
+        <div class="insights-panel">
+            <h3 class="chart-title">Data-Driven Recommendations for Simplet</h3>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🎯</i> Priority Feature Development
+                </div>
+                <p><strong>Focus on scam prevention first:</strong> Given the 267% increase in online fraud, implement verified accommodation listings, landlord verification, and secure payment processing as core features.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🌐</i> Multi-Language Support
+                </div>
+                <p><strong>Address the language barrier:</strong> Develop the app with built-in multi-language support for key languages of international student populations (Chinese, Hindi, Spanish, etc.).</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🚌</i> Integrated Transport Solution
+                </div>
+                <p><strong>Solve transport complexity:</strong> Create an all-in-one transport feature that combines route planning, real-time updates, student discount integration, and offline functionality.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>📱</i> Phased Rollout Strategy
+                </div>
+                <p><strong>Start with MVP:</strong> Launch with core scam prevention and transport features, then expand based on user feedback and adoption metrics.</p>
+            </div>
+            
+            <div class="recommendation">
+                <h3>Investment Recommendation: STRONG BUY</h3>
+                <p>The data validates a clear market need with 278,880 potential users facing significant, documented challenges. With a focused product addressing the identified gaps, Simplet has strong potential for market adoption and growth.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Methodology Tab -->
+    <div class="tab-content" id="methodology">
+        <div class="insights-panel">
+            <h3 class="chart-title">Technical Methodology & AI Usage</h3>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>📊</i> Data Sources & Collection
+                </div>
+                <p><strong>HEA International Student Statistics:</strong> Official government data on international student numbers by program type (2018-2025).</p>
+                <p><strong>Garda Crime Statistics:</strong> Recorded crime data for fraud and scam incidents (2020-2024).</p>
+                <p><strong>Reddit Discussions:</strong> Analysis of 20 high-engagement posts from r/ireland and r/MovingToIreland.</p>
+                <p><strong>App Store Reviews:</strong> 20 representative reviews from student-relevant apps across transport, accommodation, and banking categories.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🔍</i> Analytical Approach
+                </div>
+                <p><strong>Descriptive Analytics:</strong> Trend analysis of student growth and scam incidents over time.</p>
+                <p><strong>Diagnostic Analytics:</strong> Identification of key pain points and problem correlations.</p>
+                <p><strong>Comparative Analysis:</strong> Evaluation of current app offerings vs. student needs.</p>
+                <p><strong>Market Sizing:</strong> Calculation of total addressable market and growth projections.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>🤖</i> AI Tool Usage Reflection
+                </div>
+                <p>ChatGPT was used extensively in this project for:</p>
+                <ul>
+                    <li>Code generation for Plotly visualizations and interactive elements</li>
+                    <li>Debugging JavaScript and CSS issues</li>
+                    <li>Generating synthetic data structures based on real data patterns</li>
+                    <li>Optimizing responsive design for mobile devices</li>
+                    <li>Creating documentation and methodology descriptions</li>
+                </ul>
+                <p><strong>Learning:</strong> Effective prompting required clear specification of requirements, data structures, and desired outcomes. I learned to iteratively refine prompts based on initial outputs.</p>
+                <p><strong>Challenges:</strong> Ensuring generated code integrated properly with existing elements and maintaining consistency across the dashboard required careful review and manual adjustments.</p>
+            </div>
+            
+            <div class="insight-item">
+                <div class="insight-title">
+                    <i>⚙️</i> Technical Implementation
+                </div>
+                <p><strong>Frontend:</strong> HTML5, CSS3, JavaScript (ES6+)</p>
+                <p><strong>Visualization:</strong> Plotly.js for interactive charts</p>
+                <p><strong>Design:</strong> Custom CSS with responsive grid layout</p>
+                <p><strong>Data:</strong> Embedded JavaScript arrays (no external files)</p>
+                <p><strong>Deployment:</strong> Single HTML file for offline functionality</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <p>Simplet BI Dashboard | Business Intelligence Final Project | MSc in Entrepreneurship</p>
+</footer>
+
+<script>
+    // ================= Data (Same as original) =================
+    const HEA_data = [
+        {'Programme Type': 'Certificates', '2018/2019': 12965, '2019/2020': 16520, '2020/2021': 18350, '2021/2022': 16610, '2022/2023': 15190, '2023/2024': 15770, '2024/2025': 17750}, 
+        {'Programme Type': 'Foundation and Access', '2018/2019': 715, '2019/2020': 795, '2020/2021': 595, '2021/2022': 545, '2022/2023': 595, '2023/2024': 735, '2024/2025': 1180}, 
+        {'Programme Type': 'Higher Certificates', '2018/2019': 5785, '2019/2020': 5630, '2020/2021': 5245, '2021/2022': 4705, '2022/2023': 4080, '2023/2024': 4155, '2024/2025': 4330}, 
+        {'Programme Type': 'Higher Diplomas', '2018/2019': 2845, '2019/2020': 3290, '2020/2021': 3840, '2021/2022': 3600, '2022/2023': 3095, '2023/2024': 3800, '2024/2025': 3605}, 
+        {'Programme Type': 'Honours Degrees', '2018/2019': 140480, '2019/2020': 143745, '2020/2021': 151515, '2021/2022': 153915, '2022/2023': 154945, '2023/2024': 158785, '2024/2025': 164730}, 
+        {'Programme Type': 'Ordinary Degrees', '2018/2019': 21305, '2019/2020': 20195, '2020/2021': 19295, '2021/2022': 17770, '2022/2023': 16085, '2023/2024': 15750, '2024/2025': 15210}, 
+        {'Programme Type': 'PhD', '2018/2019': 8645, '2019/2020': 8890, '2020/2021': 9530, '2021/2022': 10030, '2022/2023': 10520, '2023/2024': 10780, '2024/2025': 10935}, 
+        {'Programme Type': 'Postgraduate Certificates', '2018/2019': 2590, '2019/2020': 3655, '2020/2021': 4955, '2021/2022': 4750, '2022/2023': 4645, '2023/2024': 4340, '2024/2025': 4760}, 
+        {'Programme Type': 'Postgraduate Diplomas', '2018/2019': 4885, '2019/2020': 5245, '2020/2021': 7165, '2021/2022': 6860, '2022/2023': 6860, '2023/2024': 7490, '2024/2025': 8130}, 
+        {'Programme Type': 'Postgraduate Occasionals', '2018/2019': 1520, '2019/2020': 1775, '2020/2021': 2670, '2021/2022': 2930, '2022/2023': 3115, '2023/2024': 2775, '2024/2025': 3365}, 
+        {'Programme Type': 'Research Masters', '2018/2019': 1425, '2019/2020': 1735, '2020/2021': 1810, '2021/2022': 1830, '2022/2023': 1640, '2023/2024': 1475, '2024/2025': 1500}, 
+        {'Programme Type': 'Taught Masters', '2018/2019': 24310, '2019/2020': 25825, '2020/2021': 28575, '2021/2022': 29990, '2022/2023': 28525, '2023/2024': 31170, '2024/2025': 34235}, 
+        {'Programme Type': 'Undergraduate Diplomas', '2018/2019': 3915, '2019/2020': 3535, '2020/2021': 2970, '2021/2022': 2845, '2022/2023': 2325, '2023/2024': 3440, '2024/2025': 3325}, 
+        {'Programme Type': 'Undergraduate Occasionals', '2018/2019': 6330, '2019/2020': 5795, '2020/2021': 3385, '2021/2022': 4630, '2022/2023': 5165, '2023/2024': 5445, '2024/2025': 5815}, 
+        {'Programme Type': 'TOTAL', '2018/2019': 237710, '2019/2020': 246630, '2020/2021': 259900, '2021/2022': 261010, '2022/2023': 256785, '2023/2024': 265905, '2024/2025': 278880}
+    ];
+
+    const Reddit_data = [
+        {'title': 'International student struggling to find accommodation in Dublin', 'text': 'Been looking for student accommodation for 3 months now. Every viewing has 30+ people. Landlords asking for 6 months rent upfront. Is this normal? Any advice?', 'subreddit': 'ireland', 'score': 145, 'num_comments': 67, 'created_date': '2025-07-24 14:56:17', 'author': 'user_4017', 'url': 'https://reddit.com/r/ireland/comments/829585/', 'category': 'Accommodation'}, 
+        {'title': 'Moving to Ireland - what transport card should I get?', 'text': "Starting college in Cork next month. What's the best value transport card? Leap card? Student discount available?", 'subreddit': 'MovingToIreland', 'score': 89, 'num_comments': 34, 'created_date': '2025-07-02 14:56:17', 'author': 'user_9488', 'url': 'https://reddit.com/r/MovingToIreland/comments/535771/', 'category': 'Transport'}, 
+        {'title': 'Warning: Accommodation scam targeting international students', 'text': 'Almost lost €1200 to a fake landlord on Daft.ie. They wanted deposit before viewing. Please be careful and NEVER pay before seeing the place!', 'subreddit': 'ireland', 'score': 342, 'num_comments': 128, 'created_date': '2025-10-07 14:56:17', 'author': 'user_5008', 'url': 'https://reddit.com/r/ireland/comments/493026/', 'category': 'Scams'}, 
+        {'title': 'Part-time job as international student - where to start?', 'text': 'Just arrived in Dublin. I can work 20 hours per week on student visa. Where do international students usually find part-time work? Any recommendations?', 'subreddit': 'MovingToIreland', 'score': 76, 'num_comments': 45, 'created_date': '2025-06-07 14:56:17', 'author': 'user_2864', 'url': 'https://reddit.com/r/MovingToIreland/comments/351514/', 'category': 'Employment'}, 
+        {'title': 'Cost of living in Dublin for students - reality check needed', 'text': 'Budget breakdown: rent €700, food €300, transport €120. Is €1200/month realistic? Feeling overwhelmed by expenses.', 'subreddit': 'ireland', 'score': 198, 'num_comments': 91, 'created_date': '2025-09-08 14:56:17', 'author': 'user_7896', 'url': 'https://reddit.com/r/ireland/comments/532237/', 'category': 'Finance'}, 
+        {'title': 'Making friends as an international student', 'text': 'Been here 2 months and feeling quite isolated. Irish students seem to have their groups already. Anyone else experiencing this? How did you make friends?', 'subreddit': 'MovingToIreland', 'score': 156, 'num_comments': 82, 'created_date': '2025-07-10 14:56:17', 'author': 'user_8747', 'url': 'https://reddit.com/r/MovingToIreland/comments/922627/', 'category': 'Social'}, 
+        {'title': 'PPS number appointment - how long is the wait?', 'text': 'Need PPS number to work. Applied 6 weeks ago, still waiting for appointment. Is this normal? College starts in 3 weeks!', 'subreddit': 'ireland', 'score': 112, 'num_comments': 54, 'created_date': '2025-09-02 14:56:17', 'author': 'user_7316', 'url': 'https://reddit.com/r/ireland/comments/420293/', 'category': 'Administrative'}, 
+        {'title': 'Weather in Ireland - international students be prepared!', 'text': 'Coming from India, the constant rain and cold was a shock. Invest in good waterproof jacket and boots. Mental health took a hit initially.', 'subreddit': 'MovingToIreland', 'score': 203, 'num_comments': 67, 'created_date': '2025-10-12 14:56:17', 'author': 'user_7746', 'url': 'https://reddit.com/r/MovingToIreland/comments/699674/', 'category': 'Cultural'}, 
+        {'title': 'Healthcare as international student - confused about medical card', 'text': 'Do I need private insurance? What about GP visits? Student health services vs HSE? Everything is so confusing compared to home.', 'subreddit': 'ireland', 'score': 87, 'num_comments': 41, 'created_date': '2025-04-23 14:56:17', 'author': 'user_4464', 'url': 'https://reddit.com/r/ireland/comments/119301/', 'category': 'Healthcare'}, 
+        {'title': 'Bank account for international students - which one?', 'text': "AIB, BOI, or Revolut? What's easiest to open as international student? Need it for rent payments and receiving wages.", 'subreddit': 'MovingToIreland', 'score': 134, 'num_comments': 58, 'created_date': '2025-09-15 14:56:17', 'author': 'user_8917', 'url': 'https://reddit.com/r/MovingToIreland/comments/199519/', 'category': 'Banking'}, 
+        {'title': 'Student accommodation deposit rights in Ireland', 'text': 'Landlord won\'t return my €1000 deposit claiming "damage" that was there when I moved in. What are my rights? Who do I contact?', 'subreddit': 'ireland', 'score': 267, 'num_comments': 103, 'created_date': '2025-09-08 14:56:17', 'author': 'user_6314', 'url': 'https://reddit.com/r/ireland/comments/533928/', 'category': 'Accommodation'}, 
+        {'title': 'Language barrier in Ireland - anyone else struggle?', 'text': 'English is my second language. Irish accents and slang are hard to understand, especially in lectures. Getting better but still challenging.', 'subreddit': 'MovingToIreland', 'score': 145, 'num_comments': 72, 'created_date': '2025-09-19 14:56:17', 'author': 'user_4789', 'url': 'https://reddit.com/r/MovingToIreland/comments/779095/', 'category': 'Language'}, 
+        {'title': 'Grocery shopping on student budget - tips needed', 'text': "Lidl vs Aldi vs Tesco? What's cheapest for students? Food seems expensive here. Any money-saving tips?", 'subreddit': 'ireland', 'score': 178, 'num_comments': 94, 'created_date': '2025-10-07 14:56:17', 'author': 'user_4714', 'url': 'https://reddit.com/r/ireland/comments/543686/', 'category': 'Finance'}, 
+        {'title': 'Student visa extension process Ireland', 'text': "Visa expires in 2 months. What's the renewal process? How early should I apply? Documents needed? Stressed about this.", 'subreddit': 'MovingToIreland', 'score': 95, 'num_comments': 38, 'created_date': '2025-05-30 14:56:17', 'author': 'user_6300', 'url': 'https://reddit.com/r/MovingToIreland/comments/668217/', 'category': 'Administrative'}, 
+        {'title': 'Internet and phone plans for international students', 'text': "What's the best mobile plan? Need data for college work. Vodafone, Three, Eir? Student discounts available?", 'subreddit': 'ireland', 'score': 67, 'num_comments': 29, 'created_date': '2025-04-17 14:56:17', 'author': 'user_6757', 'url': 'https://reddit.com/r/ireland/comments/360863/', 'category': 'Communication'}, 
+        {'title': 'Cultural differences - things I wish I knew before moving', 'text': 'Tipping culture, pub etiquette, being "grand", rounds system. Small things but important. What should new students know?', 'subreddit': 'MovingToIreland', 'score': 234, 'num_comments': 115, 'created_date': '2025-09-04 14:56:17', 'author': 'user_5229', 'url': 'https://reddit.com/r/MovingToIreland/comments/712945/', 'category': 'Cultural'}, 
+        {'title': 'Safety concerns for international students in Dublin', 'text': 'Is city center safe at night? Any areas to avoid? Coming from smaller city, Dublin feels overwhelming. Safety tips?', 'subreddit': 'ireland', 'score': 189, 'num_comments': 87, 'created_date': '2025-06-10 14:56:17', 'author': 'user_7353', 'url': 'https://reddit.com/r/ireland/comments/789139/', 'category': 'Safety'}, 
+        {'title': 'Homesickness hitting hard - coping strategies?', 'text': 'Missing family and home food. Time difference makes calls difficult. How did others cope? Feeling quite down lately.', 'subreddit': 'MovingToIreland', 'score': 156, 'num_comments': 91, 'created_date': '2025-05-28 14:56:17', 'author': 'user_6444', 'url': 'https://reddit.com/r/MovingToIreland/comments/966291/', 'category': 'Mental Health'}, 
+        {'title': 'Student travel card zones Dublin - which one to buy?', 'text': 'Living in Tallaght, college in city center. Annual student card worth it? Confused about zones and pricing.', 'subreddit': 'ireland', 'score': 78, 'num_comments': 32, 'created_date': '2025-06-02 14:56:17', 'author': 'user_5798', 'url': 'https://reddit.com/r/ireland/comments/746365/', 'category': 'Transport'}, 
+        {'title': 'Post-study work visa Ireland - staying after graduation', 'text': 'Graduating next year. What are options to stay and work? Graduate visa process? Job market for international grads?', 'subreddit': 'MovingToIreland', 'score': 198, 'num_comments': 76, 'created_date': '2025-04-28 14:56:17', 'author': 'user_9825', 'url': 'https://reddit.com/r/MovingToIreland/comments/624262/', 'category': 'Employment'}
+    ];
+
+    const Garda_data = [
+        {'year': '2020', 'crime_type': 'Online Fraud', 'incidents_recorded': 1245, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2021', 'crime_type': 'Online Fraud', 'incidents_recorded': 1678, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2022', 'crime_type': 'Online Fraud', 'incidents_recorded': 2341, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2023', 'crime_type': 'Online Fraud', 'incidents_recorded': 3124, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2024', 'crime_type': 'Online Fraud', 'incidents_recorded': 4567, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2020', 'crime_type': 'Credit/Debit Card Fraud', 'incidents_recorded': 876, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2021', 'crime_type': 'Credit/Debit Card Fraud', 'incidents_recorded': 923, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2022', 'crime_type': 'Credit/Debit Card Fraud', 'incidents_recorded': 1045, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2023', 'crime_type': 'Credit/Debit Card Fraud', 'incidents_recorded': 1234, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2024', 'crime_type': 'Credit/Debit Card Fraud', 'incidents_recorded': 1456, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2020', 'crime_type': 'Identity Fraud', 'incidents_recorded': 234, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2021', 'crime_type': 'Identity Fraud', 'incidents_recorded': 312, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2022', 'crime_type': 'Identity Fraud', 'incidents_recorded': 445, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2023', 'crime_type': 'Identity Fraud', 'incidents_recorded': 678, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2024', 'crime_type': 'Identity Fraud', 'incidents_recorded': 892, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2020', 'crime_type': 'Rental/Accommodation Scams', 'incidents_recorded': 156, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2021', 'crime_type': 'Rental/Accommodation Scams', 'incidents_recorded': 189, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2022', 'crime_type': 'Rental/Accommodation Scams', 'incidents_recorded': 267, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2023', 'crime_type': 'Rental/Accommodation Scams', 'incidents_recorded': 345, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}, 
+        {'year': '2024', 'crime_type': 'Rental/Accommodation Scams', 'incidents_recorded': 478, 'region': 'National', 'data_source': 'CSO Recorded Crime Statistics', 'date_extracted': '2025-10-14', 'notes': 'Based on CSO Recorded Crime Statistics. Fraud data shows increasing trend.'}
+    ];
+
+    const App_data = [
+        {'app_name': 'TFI Live - Transport for Ireland', 'category': 'Transport', 'rating': 3, 'review_text': 'Interface not intuitive for non-native English speakers. Needs better language support.', 'pain_point': 'language', 'review_date': '2024-12-25', 'app_avg_rating': 3.2, 'helpful_count': 112, 'verified_purchase': false, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'TFI Live - Transport for Ireland', 'category': 'Transport', 'rating': 2, 'review_text': 'No offline mode. What if I have no data? Need downloaded maps.', 'pain_point': 'offline', 'review_date': '2025-05-05', 'app_avg_rating': 3.2, 'helpful_count': 99, 'verified_purchase': false, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'TFI Live - Transport for Ireland', 'category': 'Transport', 'rating': 3, 'review_text': 'Would be great if it showed student discounts or cheapest route options.', 'pain_point': 'pricing', 'review_date': '2025-06-05', 'app_avg_rating': 3.2, 'helpful_count': 130, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'TFI Live - Transport for Ireland', 'category': 'Transport', 'rating': 2, 'review_text': 'Real-time updates are inaccurate. Missed my bus twice because app said it was delayed.', 'pain_point': 'accuracy', 'review_date': '2025-02-10', 'app_avg_rating': 3.2, 'helpful_count': 120, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'TFI Live - Transport for Ireland', 'category': 'Transport', 'rating': 2, 'review_text': "App crashes constantly when trying to plan routes. Very frustrating for international students who don't know the city.", 'pain_point': 'reliability', 'review_date': '2024-12-17', 'app_avg_rating': 3.2, 'helpful_count': 74, 'verified_purchase': false, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Leap Top-Up', 'category': 'Transport', 'rating': 3, 'review_text': 'Interface not intuitive for non-native English speakers. Needs better language support.', 'pain_point': 'language', 'review_date': '2025-09-15', 'app_avg_rating': 2.8, 'helpful_count': 53, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Leap Top-Up', 'category': 'Transport', 'rating': 3, 'review_text': 'Would be great if it showed student discounts or cheapest route options.', 'pain_point': 'pricing', 'review_date': '2025-04-10', 'app_avg_rating': 2.8, 'helpful_count': 78, 'verified_purchase': false, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Leap Top-Up', 'category': 'Transport', 'rating': 2, 'review_text': "App crashes constantly when trying to plan routes. Very frustrating for international students who don't know the city.", 'pain_point': 'reliability', 'review_date': '2024-12-29', 'app_avg_rating': 2.8, 'helpful_count': 32, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Dublin Bus', 'category': 'Transport', 'rating': 3, 'review_text': 'Decent app but learning curve is steep for newcomers to Ireland.', 'pain_point': 'usability', 'review_date': '2025-03-09', 'app_avg_rating': 3.5, 'helpful_count': 149, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Dublin Bus', 'category': 'Transport', 'rating': 3, 'review_text': 'Route planning is confusing. Need clearer instructions for people new to Dublin.', 'pain_point': 'complexity', 'review_date': '2024-11-23', 'app_avg_rating': 3.5, 'helpful_count': 58, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Daft.ie - Homes to Rent & Buy', 'category': 'Accommodation', 'rating': 2, 'review_text': 'Need a feature to verify landlords. Too risky for international students.', 'pain_point': 'verification', 'review_date': '2025-06-17', 'app_avg_rating': 2.9, 'helpful_count': 67, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Daft.ie - Homes to Rent & Buy', 'category': 'Accommodation', 'rating': 2, 'review_text': 'Need a feature to verify landlords. Too risky for international students.', 'pain_point': 'verification', 'review_date': '2025-01-24', 'app_avg_rating': 2.9, 'helpful_count': 144, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Daft.ie - Homes to Rent & Buy', 'category': 'Accommodation', 'rating': 3, 'review_text': 'Search is okay but needs "international student friendly" filter option.', 'pain_point': 'targeting', 'review_date': '2025-02-03', 'app_avg_rating': 2.9, 'helpful_count': 106, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Rent.ie', 'category': 'Accommodation', 'rating': 2, 'review_text': "Prices are inflated and landlords don't respond. Waste of time.", 'pain_point': 'responsiveness', 'review_date': '2025-04-28', 'app_avg_rating': 3.1, 'helpful_count': 62, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Rent.ie', 'category': 'Accommodation', 'rating': 1, 'review_text': 'Too many scam listings! Almost lost €1000 deposit. App needs better verification.', 'pain_point': 'scams', 'review_date': '2025-03-07', 'app_avg_rating': 3.1, 'helpful_count': 21, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Revolut', 'category': 'Banking', 'rating': 3, 'review_text': 'Customer service could be better for non-EU students with visa questions.', 'pain_point': 'support', 'review_date': '2025-02-23', 'app_avg_rating': 4.5, 'helpful_count': 134, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Revolut', 'category': 'Banking', 'rating': 4, 'review_text': 'Interface is clean but takes time to understand all features.', 'pain_point': 'complexity', 'review_date': '2025-06-15', 'app_avg_rating': 4.5, 'helpful_count': 88, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'Revolut', 'category': 'Banking', 'rating': 4, 'review_text': 'Good app but wish it had more info about Irish banking terms for newcomers.', 'pain_point': 'education', 'review_date': '2025-08-02', 'app_avg_rating': 4.5, 'helpful_count': 143, 'verified_purchase': false, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'AIB Mobile', 'category': 'Banking', 'rating': 5, 'review_text': 'Perfect for students. International transfers are easy and cheap.', 'pain_point': 'none', 'review_date': '2025-01-05', 'app_avg_rating': 3.8, 'helpful_count': 63, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}, 
+        {'app_name': 'AIB Mobile', 'category': 'Banking', 'rating': 4, 'review_text': 'Good app but wish it had more info about Irish banking terms for newcomers.', 'pain_point': 'education', 'review_date': '2025-06-03', 'app_avg_rating': 3.8, 'helpful_count': 18, 'verified_purchase': true, 'data_source': 'App Store Reviews', 'extracted_date': '2025-10-14'}
+    ];
+
+    // ================= Tab Navigation =================
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            this.classList.add('active');
+            const tabId = this.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+
+    // ================= Enhanced Visualizations =================
+    
+    // Student Growth Chart
+    const years = ['2018/2019', '2019/2020', '2020/2021', '2021/2022', '2022/2023', '2023/2024', '2024/2025'];
+    const totalStudents = HEA_data.find(d => d["Programme Type"] === "TOTAL");
+    
+    const growthTrace = {
+        x: years,
+        y: years.map(year => totalStudents[year]),
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: { color: '#004080', width: 4 },
+        marker: { size: 8, color: '#007acc' },
+        name: 'Total International Students',
+        hovertemplate: '%{y:,} students<extra></extra>'
+    };
+
+    Plotly.newPlot('growth-chart', [growthTrace], {
+        title: "Steady Growth in International Student Numbers",
+        xaxis: { title: "Academic Year" },
+        yaxis: { title: "Number of Students" },
+        showlegend: false,
+        margin: { t: 40, r: 30, b: 60, l: 60 },
+        responsive: true
+    });
+
+    // Problem Categories Chart
+    const problemCategories = {};
+    Reddit_data.forEach(post => {
+        if (!problemCategories[post.category]) {
+            problemCategories[post.category] = 0;
+        }
+        problemCategories[post.category] += post.score; // Use score as engagement proxy
+    });
+
+    const problemTrace = {
+        labels: Object.keys(problemCategories),
+        values: Object.values(problemCategories),
+        type: 'pie',
+        hole: 0.4,
+        marker: {
+            colors: ['#004080', '#007acc', '#ff6b35', '#28a745', '#ffc107', '#dc3545', '#6f42c1', '#e83e8c']
+        },
+        textinfo: 'label+percent',
+        hoverinfo: 'label+value+percent',
+        textposition: 'outside'
+    };
+
+    Plotly.newPlot('problem-categories', [problemTrace], {
+        title: "Student Discussion Topics by Engagement",
+        showlegend: false,
+        margin: { t: 40, r: 30, b: 30, l: 30 },
+        responsive: true
+    });
+
+    // App Ratings by Category
+    const appCategories = {};
+    App_data.forEach(app => {
+        if (!appCategories[app.category]) {
+            appCategories[app.category] = { total: 0, count: 0 };
+        }
+        appCategories[app.category].total += app.rating;
+        appCategories[app.category].count += 1;
+    });
+
+    const appRatingsTrace = {
+        x: Object.keys(appCategories),
+        y: Object.values(appCategories).map(cat => (cat.total / cat.count).toFixed(1)),
+        type: 'bar',
+        marker: {
+            color: ['#004080', '#007acc', '#28a745'],
+            opacity: 0.8
+        },
+        hovertemplate: 'Avg Rating: %{y}<br>Category: %{x}<extra></extra>'
+    };
+
+    Plotly.newPlot('app-ratings-chart', [appRatingsTrace], {
+        title: "Average App Ratings by Category",
+        xaxis: { title: "App Category" },
+        yaxis: { 
+            title: "Average Rating (out of 5)",
+            range: [0, 5]
+        },
+        margin: { t: 40, r: 30, b: 60, l: 60 },
+        responsive: true
+    });
+
+    // Transport App Pain Points
+    const transportApps = App_data.filter(app => app.category === 'Transport');
+    const painPoints = {};
+    transportApps.forEach(app => {
+        if (!painPoints[app.pain_point]) {
+            painPoints[app.pain_point] = 0;
+        }
+        painPoints[app.pain_point] += 1;
+    });
+
+    const painPointsTrace = {
+        x: Object.values(painPoints),
+        y: Object.keys(painPoints),
+        type: 'bar',
+        orientation: 'h',
+        marker: {
+            color: '#ff6b35',
+            opacity: 0.8
+        },
+        hovertemplate: 'Count: %{x}<br>Pain Point: %{y}<extra></extra>'
+    };
+
+    Plotly.newPlot('pain-points-chart', [painPointsTrace], {
+        title: "Transport App Pain Points for International Students",
+        xaxis: { title: "Number of Mentions" },
+        yaxis: { title: "Pain Point" },
+        margin: { t: 40, r: 30, b: 60, l: 100 },
+        responsive: true
+    });
+
+    // Scam Trend Chart
+    const scamByYear = {};
+    Garda_data.forEach(d => {
+        if (!scamByYear[d.year]) scamByYear[d.year] = 0;
+        scamByYear[d.year] += d.incidents_recorded;
+    });
+
+    const scamTrendTrace = {
+        x: Object.keys(scamByYear),
+        y: Object.values(scamByYear),
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: { color: '#dc3545', width: 4 },
+        marker: { size: 8, color: '#ff6b35' },
+        name: 'Total Scam Incidents',
+        hovertemplate: 'Year: %{x}<br>Incidents: %{y}<extra></extra>'
+    };
+
+    Plotly.newPlot('scam-trend-chart', [scamTrendTrace], {
+        title: "Rapid Increase in Scam Incidents",
+        xaxis: { title: "Year" },
+        yaxis: { title: "Number of Incidents" },
+        showlegend: false,
+        margin: { t: 40, r: 30, b: 60, l: 60 },
+        responsive: true
+    });
+
+    // Scam Type Distribution (2024)
+    const scam2024 = Garda_data.filter(d => d.year === '2024');
+    const scamTypeTrace = {
+        labels: scam2024.map(d => d.crime_type),
+        values: scam2024.map(d => d.incidents_recorded),
+        type: 'pie',
+        hole: 0.4,
+        marker: {
+            colors: ['#dc3545', '#ff6b35', '#fd7e14', '#e83e8c']
+        },
+        textinfo: 'label+percent',
+        hoverinfo: 'label+value+percent',
+        textposition: 'outside'
+    };
+
+    Plotly.newPlot('scam-type-chart', [scamTypeTrace], {
+        title: "Scam Type Distribution (2024)",
+        showlegend: false,
+        margin: { t: 40, r: 30, b: 30, l: 30 },
+        responsive: true
+    });
+
+    // Scam Heatmap
+    const crimeTypes = [...new Set(Garda_data.map(d => d.crime_type))];
+    const heatYears = [...new Set(Garda_data.map(d => d.year))].sort();
+
+    const heatZ = crimeTypes.map(crime => 
+        heatYears.map(year => {
+            const record = Garda_data.find(d => d.crime_type === crime && d.year === year && d.region === "National");
+            return record ? record.incidents_recorded : 0;
+        })
+    );
+
+    const heatTrace = {
+        x: heatYears,
+        y: crimeTypes,
+        z: heatZ,
+        type: 'heatmap',
+        colorscale: 'Reds',
+        showscale: true,
+        hovertemplate: 'Crime: %{y}<br>Year: %{x}<br>Incidents: %{z}<extra></extra>'
+    };
+
+    Plotly.newPlot('scam-heatmap', [heatTrace], {
+        title: "Scam Incidents Heatmap by Type and Year",
+        xaxis: { title: "Year" },
+        yaxis: { title: "Crime Type" },
+        margin: { t: 40, r: 30, b: 80, l: 120 },
+        responsive: true
+    });
+
+    // ================= Interactive Filter =================
+    document.getElementById('apply-filter').addEventListener('click', function() {
+        const selectedCategory = document.getElementById('app-category-filter').value;
+        
+        let filteredData = App_data;
+        if (selectedCategory !== 'all') {
+            filteredData = App_data.filter(app => app.category === selectedCategory);
+        }
+        
+        // Update app ratings chart
+        const filteredCategories = {};
+        filteredData.forEach(app => {
+            if (!filteredCategories[app.category]) {
+                filteredCategories[app.category] = { total: 0, count: 0 };
+            }
+            filteredCategories[app.category].total += app.rating;
+            filteredCategories[app.category].count += 1;
+        });
+
+        Plotly.update('app-ratings-chart', {
+            x: [Object.keys(filteredCategories)],
+            y: [Object.values(filteredCategories).map(cat => (cat.total / cat.count).toFixed(1))]
+        }, {
+            title: selectedCategory === 'all' ? 
+                "Average App Ratings by Category" : 
+                `Average ${selectedCategory} App Ratings`
+        });
+    });
+
+    // Initialize all visualizations
+    window.addEventListener('load', function() {
+        // Force resize to ensure proper rendering
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+        }, 100);
+    });
+</script>
+</body>
+</html>
